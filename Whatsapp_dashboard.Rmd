@@ -1,0 +1,104 @@
+---
+title: "whatsapp_dashboard"
+author: "Yvonne"
+date: "9/26/2024"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+---
+  
+```{r include = FALSE}
+library("viridis")
+library("ggplot2")
+library("marmap")
+library("rwhatsapp")
+library("dplyr")
+library("tidyr")
+```
+
+# Intro {.sidebar}
+
+This dashboard covers several topics:
+
+-   The marmap package
+-   The viridis package
+-   Miscellaneous material
+
+# Frequency Package
+
+## Column 1
+
+### Florida
+
+```{r echo = FALSE}
+
+chat_Y <- rwa_read("_chattill20240926.txt") %>% 
+  filter(!is.na(author)) # remove messages without author
+
+df_processed <- chat_Y %>%
+  # Convert time to Date format
+  mutate(date = as.Date(time)) %>%
+  # Count messages per date and author
+  group_by(date, author) %>%
+  summarise(n_messages = n()) %>%
+  ungroup()
+
+ggplot(df_processed, aes(x = date, y = n_messages, fill = author)) +
+  geom_bar(stat = "identity", position = "stack") +
+  labs(x = "Date", y = "Number of Messages", title = "Messages Per Day by Author") +
+  theme_minimal() +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b-%Y") +  # Add labels for each month
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))        # Rotate x-axis labels
+
+# [to do] change color sceme 
+```
+
+The [marmap](https://cran.r-project.org/web/packages/marmap/index.html) package provides tools and data for visualizing the ocean floor. Here is an example contour plot of marmap's `florida` dataset.
+
+## Column 2
+
+### Emoji
+
+```{r echo = FALSE}
+library("ggimage")
+emoji_data <- rwhatsapp::emojis %>% # data built into package
+  mutate(hex_runes1 = gsub("\\s.*", "", hex_runes)) %>% # ignore combined emojis
+  mutate(emoji_url = paste0("https://abs.twimg.com/emoji/v2/72x72/", 
+                            tolower(hex_runes1), ".png"))
+?unnest
+chat_Y %>%
+  unnest(emoji) %>%
+  count(author, emoji, sort = TRUE) %>%
+  group_by(author) %>%
+  top_n(n = 6, n) %>%
+  left_join(emoji_data, by = "emoji") %>% 
+  ggplot(aes(x = reorder(emoji, n), y = n, fill = author)) +
+  geom_col(show.legend = FALSE) +
+  ylab("") +
+  xlab("") +
+  coord_flip() +
+  geom_image(aes(y = n + 20, image = emoji_url)) +
+  facet_wrap(~author, ncol = 2, scales = "free_y") +
+  ggtitle("Most often used emojis") +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+# [to do] mood change by month? emoji cloud?
+```
+
+### Alaska
+
+```{r echo = FALSE}
+data(aleutians)
+autoplot.bathy(aleutians)
+```
+
+# Viridis Package
+
+## Column 1
+
+### Viridis colors
+
+```{r fig.cap="Maunga Whao, Auckland, NZ"}
+image(volcano, col = viridis(200))
+```
