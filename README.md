@@ -1,4 +1,4 @@
-![emoji](https://github.com/user-attachments/assets/2758b01e-b4b2-4237-baf7-466f92569ac9)# wa_viz
+
 A gadget to automatically generate a dashboard for your imported WhatsApp conversation history :)
 
 Preview of the generated dashboard:
